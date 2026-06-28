@@ -1,0 +1,12 @@
+{
+  "name": "vehicle-3d-scanner-monorepo",
+  "version": "1.0.0",
+  "description": "Plataforma de Escaneo y Renderizado 3D de Vehículos",
+  "private": true,
+  "scripts": {
+    "core:start": "pnpm --filter @vehicle-3d-scanner/core start"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3"
+  }
+}

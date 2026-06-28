@@ -1,0 +1,17 @@
+{
+  "name": "@vehicle-3d-scanner/backend",
+  "version": "1.0.0",
+  "description": "Servicio de Orquestación y Pipeline de Reconstrucción 3D Propietario",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "start": "ts-node src/index.ts"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3"
+  }
+}

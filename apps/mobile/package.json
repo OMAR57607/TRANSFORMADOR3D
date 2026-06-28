@@ -1,0 +1,20 @@
+{
+  "name": "@vehicle-3d-scanner/mobile",
+  "version": "1.0.0",
+  "description": "Aplicación Móvil en React Native para Captura 360",
+  "private": true,
+  "scripts": {
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios"
+  },
+  "dependencies": {
+    "expo": "~50.0.0",
+    "react": "18.2.0",
+    "react-native": "0.73.2"
+  },
+  "devDependencies": {
+    "@types/react": "~18.2.45",
+    "typescript": "^5.3.3"
+  }
+}

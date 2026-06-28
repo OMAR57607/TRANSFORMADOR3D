@@ -1,0 +1,5 @@
+packages:
+  # Incluir todos los paquetes dentro de packages/
+  - 'packages/*'
+  # Incluir todos los proyectos dentro de apps/
+  - 'apps/*'

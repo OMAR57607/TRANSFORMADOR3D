@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>3D Vehicle Scanner & Renderer - Dashboard</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <!-- CSS Stylesheet -->
+  <link rel="stylesheet" href="css/style.css">
+  <!-- FontAwesome para iconos -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Three.js, OrbitControls, GLTFLoader y DRACOLoader desde CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/DRACOLoader.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/OBJLoader.js" crossorigin="anonymous"></script>
+</head>
+<body>
+  <!-- Contenedor del Lienzo WebGL 3D -->
+  <div id="canvas-container"></div>
+
+  <!-- Capa de Superposición de Luces y Efectos de Fondo -->
+  <div class="bg-glow"></div>
+
+  <!-- Botón flotante para restaurar la interfaz cuando esté oculta -->
+  <button class="btn btn-primary" id="btn-floating-ui-toggle" style="display: none; position: absolute; top: 24px; right: 24px; z-index: 100;">
+    <i class="fa-solid fa-eye"></i> Mostrar Interfaz
+  </button>
+
+  <!-- Botones de Control de Cámara Flotantes -->
+  <div class="floating-camera-controls" style="position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%); z-index: 100; display: flex; align-items: center; gap: 12px; background: rgba(10, 15, 30, 0.75); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 30px; padding: 6px 16px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);">
+    <button class="btn btn-sm" id="btn-zoom-in" title="Acercar Zoom" style="border-radius: 50%; width: 36px; height: 36px; padding: 0; display: flex; align-items: center; justify-content: center; border: none; background: rgba(255,255,255,0.05); color: #fff; cursor: pointer;">
+      <i class="fa-solid fa-plus"></i>
+    </button>
+    <button class="btn btn-sm" id="btn-zoom-out" title="Alejar Zoom" style="border-radius: 50%; width: 36px; height: 36px; padding: 0; display: flex; align-items: center; justify-content: center; border: none; background: rgba(255,255,255,0.05); color: #fff; cursor: pointer;">
+      <i class="fa-solid fa-minus"></i>
+    </button>
+    <div style="width: 1px; height: 20px; background: rgba(255,255,255,0.15);"></div>
+    <button class="btn btn-sm" id="btn-center-view" title="Centrar Vehículo" style="border-radius: 30px; padding: 0 14px; height: 36px; display: flex; align-items: center; gap: 6px; border: none; background: rgba(255,255,255,0.05); color: #fff; font-size: 11px; cursor: pointer; font-family: var(--font-family);">
+      <i class="fa-solid fa-crosshairs"></i> Centrar
+    </button>
+    <div style="width: 1px; height: 20px; background: rgba(255,255,255,0.15);"></div>
+    <span style="color: var(--accent-cyan); font-size: 11px; font-weight: 600; letter-spacing: 0.5px; display: flex; align-items: center; gap: 6px; font-family: var(--font-family);">
+      <i class="fa-solid fa-ruler-horizontal"></i> Escala Fija: 190 cm
+    </span>
+  </div>
+
+  <!-- Interfaz de Usuario Principal (Glassmorphism Panels) -->
+  <div class="ui-wrapper" id="ui-wrapper">
+    <!-- Header -->
+    <header class="main-header">
+      <div class="brand">
+        <i class="fa-solid fa-circle-nodes brand-icon"></i>
+        <h1>Antigravity <span class="accent-text">3D Scanner</span></h1>
+      </div>
+      <div class="header-actions" style="display: flex; align-items: center; gap: 16px;">
+        <button class="btn btn-sm btn-outline" id="btn-toggle-ui">
+          <i class="fa-solid fa-eye-slash"></i> Ocultar Interfaz
+        </button>
+        <div class="status-badge" id="system-status">
+          <span class="status-dot green"></span>
+          Sistema Listo
+        </div>
+      </div>
+    </header>
+
+    <!-- Contenido Principal Grid -->
+    <main class="dashboard-grid">
+      <!-- Panel Izquierdo: Captura y Subida -->
+      <section class="panel glass-panel" id="panel-capture">
+        <div class="panel-header">
+          <i class="fa-solid fa-cloud-arrow-up panel-icon"></i>
+          <h2>Captura & Reconstrucción</h2>
+        </div>
+        <div class="panel-body">
+          <div class="form-group">
+            <label for="vehicle-select">Vehículo a Procesar</label>
+            <select id="vehicle-select">
+              <option value="toyota-tacoma-2024">Toyota Tacoma 2024 (Camioneta)</option>
+              <option value="ford-mustang-gt-2025">Ford Mustang GT 2025</option>
+              <option value="toyota-supra-2024">Toyota Supra 2024</option>
+              <option value="porsche-911-gt3-rs">Porsche 911 GT3 RS</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="replicate-token">Token de API (Meshy o Replicate)</label>
+            <input type="password" id="replicate-token" placeholder="msy_... (Meshy multi-foto) o r8_... (Replicate)" class="input-text">
+            <small id="token-hint" style="color: var(--text-muted); font-size: 11px; margin-top: -2px; margin-bottom: 4px;">
+              <strong style="color: var(--accent-green);">✦ Recomendado:</strong> Token de <a href="https://www.meshy.ai/api" target="_blank" style="color: var(--accent-cyan); text-decoration: none;">Meshy (msy_...)</a> para multi-imagen 3D
+              &nbsp;|&nbsp;
+              <a href="https://replicate.com/keys" target="_blank" style="color: var(--text-muted); text-decoration: none;">Replicate (r8_...)</a>
+            </small>
+          </div>
+
+          <div class="upload-zone" id="upload-zone">
+            <i class="fa-solid fa-cube upload-icon"></i>
+            <p>Arrastra tu modelo 3D (.glb, .gltf) o video 360° o</p>
+            <button class="btn btn-secondary" id="btn-browse">Examinar Archivos</button>
+            <input type="file" id="file-input" accept="video/*,.zip,.glb,.gltf" style="display: none;">
+            <span class="file-info" id="file-info">Soporta .glb, .gltf, .mp4, .zip</span>
+          </div>
+
+          <button class="btn btn-primary btn-block" id="btn-start-process" disabled>
+            <i class="fa-solid fa-play"></i> Iniciar Procesamiento 3D
+          </button>
+
+          <!-- Control de Modo de Visualización -->
+          <div class="control-group" id="view-mode-group" style="margin-top: 12px; border-top: 1px solid var(--panel-border); padding-top: 12px;">
+            <h3>Modelo Visualizado</h3>
+            <div style="display: flex; gap: 8px;">
+              <button class="btn btn-sm btn-primary" id="btn-mode-ia" style="flex: 1; font-size: 11px; padding: 8px 0;">Malla IA (Real)</button>
+              <button class="btn btn-sm btn-outline" id="btn-mode-hd" style="flex: 1; font-size: 11px; padding: 8px 0;">Modelo HD (CAD)</button>
+            </div>
+          </div>
+
+          <!-- Historial de Escaneos Recientes -->
+          <div class="control-group" id="history-group" style="margin-top: 10px; border-top: 1px solid var(--panel-border); padding-top: 12px;">
+            <h3>Escaneos Recientes</h3>
+            <div id="jobs-history-list" style="display: flex; flex-direction: column; gap: 6px; max-height: 110px; overflow-y: auto; padding-right: 4px;">
+              <span style="color: var(--text-muted); font-size: 11px; font-style: italic;">Cargando historial...</span>
+            </div>
+          </div>
+
+          <!-- Consola de Progreso -->
+          <div class="progress-container" id="progress-container" style="display: none;">
+            <div class="progress-details">
+              <span id="progress-step">Subiendo captura...</span>
+              <span id="progress-percent">0%</span>
+            </div>
+            <div class="progress-bar-bg">
+              <div class="progress-bar-fill" id="progress-bar-fill"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Panel Derecho: Visor e Iluminación -->
+      <section class="panel glass-panel" id="panel-controls">
+        <div class="panel-header">
+          <i class="fa-solid fa-sliders panel-icon"></i>
+          <h2>Control de Renderizado</h2>
+        </div>
+        <div class="panel-body">
+          <!-- Opciones de Iluminación y Reflejos -->
+          <div class="control-group">
+            <h3>Entorno & Reflejos HDRI</h3>
+            <div class="toggle-control">
+              <span>Habilitar Reflejos HDRI</span>
+              <label class="switch">
+                <input type="checkbox" id="toggle-hdri" checked>
+                <span class="slider round"></span>
+              </label>
+            </div>
+            <div class="toggle-control">
+              <span>Sombras de Contacto Suaves</span>
+              <label class="switch">
+                <input type="checkbox" id="toggle-shadows" checked>
+                <span class="slider round"></span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Selección de Pintura del Vehículo (Color Shader) -->
+          <div class="control-group">
+            <h3>Color de la Carrocería</h3>
+            <div class="color-presets">
+              <button class="color-dot active" style="background: #0f1c2c;" data-color="#0f1c2c" title="Azul Deep Space"></button>
+              <button class="color-dot" style="background: #a30000;" data-color="#a30000" title="Rojo Candy Carbono"></button>
+              <button class="color-dot" style="background: #e2e8f0;" data-color="#e2e8f0" title="Plata Metalizado"></button>
+              <button class="color-dot" style="background: #0d0d0d;" data-color="#0d0d0d" title="Negro Obsidian"></button>
+              <button class="color-dot" style="background: #00f2fe;" data-color="#00f2fe" title="Cian Eléctrico"></button>
+            </div>
+          </div>
+
+          <!-- Controles de Cámara -->
+          <div class="control-group">
+            <h3>Tomas de Cámara Predefinidas</h3>
+            <div class="camera-buttons">
+              <button class="btn btn-sm btn-outline" id="cam-front">Frontal</button>
+              <button class="btn btn-sm btn-outline" id="cam-side">Lateral</button>
+              <button class="btn btn-sm btn-outline" id="cam-top">Cenital</button>
+              <button class="btn btn-sm btn-outline" id="cam-isometric">Perspectiva</button>
+            </div>
+          </div>
+
+          <button class="btn btn-outline btn-block" id="btn-reset-cam">
+            <i class="fa-solid fa-camera-rotate"></i> Restablecer Cámara
+          </button>
+        </div>
+      </section>
+
+      <!-- Panel Inferior: Logs del Servidor GPU -->
+      <section class="panel glass-panel col-span-2" id="panel-logs">
+        <div class="panel-header">
+          <i class="fa-solid fa-terminal panel-icon"></i>
+          <h2>Logs del Pipeline 3D (Telemetría CUDA)</h2>
+        </div>
+        <div class="panel-body log-body" id="log-console">
+          <div class="log-line system">[SISTEMA] Inicializando motores gráficos WebGL2.</div>
+          <div class="log-line system">[SISTEMA] Entorno de renderizado 3D listo. Esperando carga de modelo.</div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Scripts del Desarrollador -->
+  <script src="js/ThreeJsVehicleRenderer.js?v=2.0"></script>
+  <script src="js/app.js?v=2.0"></script>
+</body>
+</html>
