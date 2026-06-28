@@ -44,15 +44,21 @@ class BackendAPIHandler(BaseHTTPRequestHandler):
 
         # 1. Endpoint: GET /api/jobs
         if len(path_parts) >= 2 and path_parts[0] == "api" and path_parts[1] == "jobs":
-            jobs = []
+            jobs_with_time = []
             if os.path.exists(TEMP_DIR):
                 for file in os.listdir(TEMP_DIR):
                     if file.startswith("job-") and file.endswith(".json"):
                         try:
-                            with open(os.path.join(TEMP_DIR, file), 'r', encoding='utf-8') as f:
-                                jobs.append(json.load(f))
+                            filepath = os.path.join(TEMP_DIR, file)
+                            mtime = os.path.getmtime(filepath)
+                            with open(filepath, 'r', encoding='utf-8') as f:
+                                jobs_with_time.append((mtime, json.load(f)))
                         except Exception:
                             pass
+            # Ordenar por tiempo de modificación descendente (más nuevo arriba)
+            jobs_with_time.sort(key=lambda x: x[0], reverse=True)
+            jobs = [j[1] for j in jobs_with_time]
+            
             self.send_response(200)
             self.send_header('Content-Type', 'application/json')
             self.end_headers()
