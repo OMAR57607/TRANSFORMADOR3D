@@ -664,4 +664,38 @@ document.addEventListener('DOMContentLoaded', () => {
       addLog('Vista centrada y auto-ajustada al tamaño del vehículo (190 cm).', 'system');
     });
   }
+
+  // --- DESCARGA DEL MODELO 3D (.glb) EN DISTINTAS CALIDADES ---
+  const btnDlAlta = document.getElementById('btn-dl-alta');
+  const btnDlMedia = document.getElementById('btn-dl-media');
+  const btnDlBaja = document.getElementById('btn-dl-baja');
+
+  function downloadModel(maxTextureSize, label) {
+    if (viewerMode !== '3d') {
+      addLog('[DESCARGA] La descarga .glb solo aplica al modo 3D (no al visor 360° de fotos).', 'system');
+      return;
+    }
+    addLog(`[DESCARGA] Generando .glb en calidad ${label}...`, 'system');
+    [btnDlAlta, btnDlMedia, btnDlBaja].forEach(b => b && b.setAttribute('disabled', 'true'));
+
+    renderer.exportGLB(maxTextureSize).then((blob) => {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `modelo-3d-${label.toLowerCase()}.glb`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 2000);
+      addLog(`[DESCARGA] ¡Listo! modelo-3d-${label.toLowerCase()}.glb (${(blob.size / 1024 / 1024).toFixed(2)} MB).`, 'success');
+    }).catch((err) => {
+      addLog(`[DESCARGA] Error: ${err.message}`, 'error');
+    }).finally(() => {
+      [btnDlAlta, btnDlMedia, btnDlBaja].forEach(b => b && b.removeAttribute('disabled'));
+    });
+  }
+
+  if (btnDlAlta) btnDlAlta.addEventListener('click', () => downloadModel(0, 'Alta'));
+  if (btnDlMedia) btnDlMedia.addEventListener('click', () => downloadModel(1024, 'Media'));
+  if (btnDlBaja) btnDlBaja.addEventListener('click', () => downloadModel(512, 'Baja'));
 });

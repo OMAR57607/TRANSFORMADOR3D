@@ -51,6 +51,21 @@ Gira **tus fotos reales** como si el coche girara. **No usa IA ni token, es grat
 
 ---
 
+## 💾 Descargar el modelo 3D (.glb)
+
+En el panel izquierdo, **"Descargar Modelo 3D (.glb)"** baja a tu equipo el modelo que estás viendo,
+en tres calidades:
+
+- **Alta**: original (geometría y textura completas).
+- **Media**: textura reducida a 1024px (archivo más ligero).
+- **Baja**: textura reducida a 512px (el más ligero).
+
+Se exporta en el navegador con `GLTFExporter` (sin servidor). Sirve para cualquier modelo cargado en el
+visor 3D: generado por IA o un `.glb` que hayas subido. La descarga `.glb` no aplica al modo 360°
+(ahí son fotos, no un modelo 3D).
+
+---
+
 ## 🔑 Proveedores de IA (modo 3D)
 
 El proveedor se detecta automáticamente por el **prefijo del token** que escribes en la interfaz:

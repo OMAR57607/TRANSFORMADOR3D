@@ -29,7 +29,7 @@ python3 apps/backend/src/server.py   # servidor real, puerto 3000
 | `apps/backend/src/server.py` | ★ Servidor HTTP. Sirve `apps/web`, expone la API y llama a Meshy/Replicate en un hilo. |
 | `apps/web/index.html` | UI (paneles glassmorphism, toggle de modo de visor, zona de subida). |
 | `apps/web/js/app.js` | Orquestador. Conecta UI ↔ visores, maneja subida/polling y los dos modos. |
-| `apps/web/js/ThreeJsVehicleRenderer.js` | Visor 3D (Three.js): carga GLB/OBJ, materiales, luces, cámara. |
+| `apps/web/js/ThreeJsVehicleRenderer.js` | Visor 3D (Three.js): carga GLB/OBJ, materiales, luces, cámara. Incluye `exportGLB(maxTextureSize)` para descargar el modelo (usa `GLTFExporter`; calidades = reducir textura). |
 | `apps/web/js/Spinner360Viewer.js` | Visor 360° (canvas 2D): gira una secuencia de fotos al arrastrar. |
 | `apps/web/css/style.css` | Estilos. `#canvas-container` (3D) y `#spinner-container` (360°) comparten capa. |
 

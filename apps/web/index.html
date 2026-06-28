@@ -18,6 +18,8 @@
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/DRACOLoader.js" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/OBJLoader.js" crossorigin="anonymous"></script>
+  <!-- GLTFExporter: exportar/descargar el modelo a .glb desde el navegador -->
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/exporters/GLTFExporter.js" crossorigin="anonymous"></script>
   <!-- JSZip: descomprimir ZIP de fotos en el navegador (modo 360°) -->
   <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js" crossorigin="anonymous"></script>
 </head>
@@ -140,6 +142,19 @@
             </div>
           </div>
 
+          <!-- Descargar el modelo 3D al equipo en distintas calidades -->
+          <div class="control-group" id="download-group" style="margin-top: 10px; border-top: 1px solid var(--panel-border); padding-top: 12px;">
+            <h3><i class="fa-solid fa-download"></i> Descargar Modelo 3D (.glb)</h3>
+            <div style="display: flex; gap: 8px;">
+              <button class="btn btn-sm btn-outline" id="btn-dl-alta" style="flex: 1; font-size: 11px; padding: 8px 0;">Alta</button>
+              <button class="btn btn-sm btn-outline" id="btn-dl-media" style="flex: 1; font-size: 11px; padding: 8px 0;">Media</button>
+              <button class="btn btn-sm btn-outline" id="btn-dl-baja" style="flex: 1; font-size: 11px; padding: 8px 0;">Baja</button>
+            </div>
+            <small style="color: var(--text-muted); font-size: 11px; margin-top: 2px;">
+              Descarga el modelo que ves. <strong>Alta</strong> = original · <strong>Media</strong> = textura 1024px · <strong>Baja</strong> = textura 512px.
+            </small>
+          </div>
+
           <!-- Historial de Escaneos Recientes -->
           <div class="control-group" id="history-group" style="margin-top: 10px; border-top: 1px solid var(--panel-border); padding-top: 12px;">
             <h3>Escaneos Recientes</h3>
@@ -231,8 +246,8 @@
   </div>
 
   <!-- Scripts del Desarrollador -->
-  <script src="js/ThreeJsVehicleRenderer.js?v=3.0"></script>
-  <script src="js/Spinner360Viewer.js?v=3.0"></script>
-  <script src="js/app.js?v=3.0"></script>
+  <script src="js/ThreeJsVehicleRenderer.js?v=3.1"></script>
+  <script src="js/Spinner360Viewer.js?v=3.1"></script>
+  <script src="js/app.js?v=3.1"></script>
 </body>
 </html>

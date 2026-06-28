@@ -461,4 +461,89 @@ class ThreeJsVehicleRenderer {
     this.controls.target.copy(center);
     this.controls.update();
   }
+
+  /**
+   * Reduce una textura a un tamaño máximo (px) usando un canvas.
+   * Devuelve una nueva CanvasTexture; NO modifica la original.
+   */
+  _downscaleTexture(tex, maxSize) {
+    const img = tex.image;
+    const iw = img.width, ih = img.height;
+    const scale = Math.min(1, maxSize / Math.max(iw, ih));
+    const w = Math.max(1, Math.round(iw * scale));
+    const h = Math.max(1, Math.round(ih * scale));
+    const canvas = document.createElement('canvas');
+    canvas.width = w; canvas.height = h;
+    canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+    const newTex = new THREE.CanvasTexture(canvas);
+    if (tex.flipY !== undefined) newTex.flipY = tex.flipY;
+    newTex.encoding = tex.encoding;
+    newTex.wrapS = tex.wrapS;
+    newTex.wrapT = tex.wrapT;
+    newTex.needsUpdate = true;
+    return newTex;
+  }
+
+  /**
+   * Exporta el modelo actualmente cargado a un Blob .glb (binario).
+   * @param {number} maxTextureSize - 0 = textura original (Alta). >0 = reduce
+   *        las texturas a ese tamaño máximo (p.ej. 1024 o 512) para que pese menos.
+   * @returns {Promise<Blob>}
+   */
+  exportGLB(maxTextureSize = 0) {
+    return new Promise((resolve, reject) => {
+      if (!this.carGroup) {
+        reject(new Error('No hay ningún modelo cargado para descargar.'));
+        return;
+      }
+      if (typeof THREE.GLTFExporter === 'undefined') {
+        reject(new Error('GLTFExporter no se cargó (revisa tu conexión al CDN).'));
+        return;
+      }
+
+      // Intercambiar temporalmente las texturas por versiones reducidas
+      const swaps = []; // { mat, key, original }
+      if (maxTextureSize && maxTextureSize > 0) {
+        try {
+          const TEXTURE_KEYS = ['map', 'normalMap', 'roughnessMap', 'metalnessMap', 'emissiveMap', 'aoMap'];
+          this.carGroup.traverse((child) => {
+            if (child.isMesh && child.material) {
+              const mats = Array.isArray(child.material) ? child.material : [child.material];
+              mats.forEach((mat) => {
+                TEXTURE_KEYS.forEach((key) => {
+                  const tex = mat[key];
+                  if (tex && tex.image && tex.image.width &&
+                      Math.max(tex.image.width, tex.image.height) > maxTextureSize) {
+                    try {
+                      const small = this._downscaleTexture(tex, maxTextureSize);
+                      swaps.push({ mat, key, original: tex });
+                      mat[key] = small;
+                    } catch (e) { /* si falla, dejar la textura original */ }
+                  }
+                });
+              });
+            }
+          });
+        } catch (e) { /* continuar sin reducir texturas */ }
+      }
+
+      const restore = () => swaps.forEach((s) => { s.mat[s.key] = s.original; });
+
+      try {
+        const exporter = new THREE.GLTFExporter();
+        exporter.parse(this.carGroup, (result) => {
+          restore();
+          try {
+            const blob = new Blob([result], { type: 'model/gltf-binary' });
+            resolve(blob);
+          } catch (e) {
+            reject(e);
+          }
+        }, { binary: true });
+      } catch (e) {
+        restore();
+        reject(e);
+      }
+    });
+  }
 }
