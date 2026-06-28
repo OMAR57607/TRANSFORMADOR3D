@@ -260,6 +260,14 @@ def update_job_status(job_id, status, progress, error_msg=None, model_url=None):
         with open(job_file, 'w', encoding='utf-8') as f:
             json.dump(data, f, indent=2)
 
+def _add_bg_removal(payload_input, input_keys):
+    """Activa la eliminación de fondo si el modelo de Replicate la soporta.
+    Quitar el fondo mejora muchísimo la calidad de la reconstrucción 3D."""
+    for key in ("remove_background", "do_remove_background", "remove_bg", "background_removal"):
+        if key in input_keys:
+            payload_input[key] = True
+            break
+
 def run_3d_prediction(job_id, image_path, token):
     """Pipeline principal de reconstrucción 3D. Soporta dos proveedores:
     - Meshy (token msy_...): Multi-imagen nativo, hasta 4 ángulos
@@ -351,10 +359,18 @@ def run_3d_prediction(job_id, image_path, token):
             "Authorization": f"Bearer {token}",
             "Content-Type": "application/json"
         }
+        # Parámetros de calidad: remesh para una malla limpia, PBR para
+        # materiales realistas, simetría automática (ideal en coches) y un
+        # conteo de polígonos razonable para web.
         meshy_payload = {
             "image_urls": all_data_uris,
             "ai_model": "meshy-6",
-            "should_texture": True
+            "should_texture": True,
+            "should_remesh": True,
+            "enable_pbr": True,
+            "symmetry_mode": "auto",
+            "topology": "triangle",
+            "target_polycount": 30000
         }
 
         try:
@@ -519,14 +535,19 @@ def run_3d_prediction(job_id, image_path, token):
                 log(f"  ✓ {model_name} disponible (versión: {ver_id[:16]}..., inputs: {input_keys})")
                 chosen_model = model_name
                 chosen_version = ver_id
-                if "images" in input_keys:
-                    chosen_payload_input = {"images": all_data_uris}
+                # Enviar TODAS las imágenes si el modelo acepta un array de vistas.
+                # (Antes solo se mandaba la primera y se desperdiciaban los demás ángulos.)
+                array_key = next((k for k in ("images", "input_images", "image_urls", "view_images") if k in input_keys), None)
+                if array_key:
+                    chosen_payload_input = {array_key: all_data_uris}
+                    log(f"  → Enviando las {len(all_data_uris)} vistas al campo '{array_key}'.")
                 elif "image" in input_keys:
                     chosen_payload_input = {"image": all_data_uris[0]}
                 else:
                     chosen_payload_input = {"image": all_data_uris[0]}
                 if "prompt" in input_keys:
                     chosen_payload_input["prompt"] = "high quality detailed vehicle, 3d model, clean mesh"
+                _add_bg_removal(chosen_payload_input, input_keys)
                 break
             else:
                 log(f"  ✗ {model_name} no disponible para tu cuenta.")
@@ -545,6 +566,7 @@ def run_3d_prediction(job_id, image_path, token):
                     chosen_payload_input = {"image": all_data_uris[0]}
                 else:
                     chosen_payload_input = {"image_path": all_data_uris[0]}
+                _add_bg_removal(chosen_payload_input, input_keys)
                 break
             else:
                 log(f"  ✗ {model_name} no disponible.")

@@ -240,27 +240,33 @@ class ThreeJsVehicleRenderer {
 
             this.carGroup = wrapper;
 
-            // Configurar sombras y aplicar un material de "Modo Arcilla/Malla" premium
-            // Esto resalta las facetas de la reconstrucción y evita reflejos metálicos rotos
+            // Configurar sombras y aplicar un material de "Modo Arcilla/Malla" suave.
+            // Usamos sombreado SUAVE (flatShading: false) y recalculamos normales para
+            // que la malla de IA no se vea facetada/tosca; eso era lo que la afeaba.
             const clayMaterial = new THREE.MeshStandardMaterial({
-              color: 0x93a5b8,       // Gris arcilla azulado mate
-              roughness: 0.8,        // Mate para disipar reflejos
-              metalness: 0.1,        // No reflectivo
-              flatShading: true      // Resalta la geometría de facetas
+              color: 0x9aa7b8,       // Gris arcilla azulado claro
+              roughness: 0.75,       // Mate para disipar reflejos
+              metalness: 0.05,       // Casi no reflectivo
+              flatShading: false     // Sombreado suave (sin facetas duras)
             });
 
             this.carGroup.traverse((child) => {
               if (child.isMesh) {
                 child.castShadow = true;
                 child.receiveShadow = true;
-                
-                // Si el modelo contiene colores de vértices válidos
+
+                // Recalcular normales suaves para alisar la superficie reconstruida
+                if (child.geometry) {
+                  child.geometry.computeVertexNormals();
+                }
+
+                // Si el modelo contiene colores de vértices válidos, respetarlos
                 if (child.geometry && child.geometry.attributes.color) {
                   child.material = new THREE.MeshStandardMaterial({
                     vertexColors: true,
-                    roughness: 0.8,
-                    metalness: 0.1,
-                    flatShading: true
+                    roughness: 0.75,
+                    metalness: 0.05,
+                    flatShading: false
                   });
                 } else {
                   child.material = clayMaterial;
@@ -374,7 +380,6 @@ class ThreeJsVehicleRenderer {
   setCarColor(colorHex) {
     if (this.bodyMaterial) {
       this.bodyMaterial.color.setHex(parseInt(colorHex.replace('#', '0x')));
-      addLog(`Pintura de carrocería cambiada a: ${colorHex}`, 'system');
     }
   }
 

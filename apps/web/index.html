@@ -18,10 +18,15 @@
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/DRACOLoader.js" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/OBJLoader.js" crossorigin="anonymous"></script>
+  <!-- JSZip: descomprimir ZIP de fotos en el navegador (modo 360°) -->
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js" crossorigin="anonymous"></script>
 </head>
 <body>
   <!-- Contenedor del Lienzo WebGL 3D -->
   <div id="canvas-container"></div>
+
+  <!-- Contenedor del Visor 360° (2D) - oculto por defecto -->
+  <div id="spinner-container"></div>
 
   <!-- Capa de Superposición de Luces y Efectos de Fondo -->
   <div class="bg-glow"></div>
@@ -77,6 +82,23 @@
           <h2>Captura & Reconstrucción</h2>
         </div>
         <div class="panel-body">
+          <!-- Selector de Modo del Visor: 3D (IA) o 360° (fotos reales) -->
+          <div class="control-group" id="viewer-mode-group">
+            <h3>Modo del Visor</h3>
+            <div style="display: flex; gap: 8px;">
+              <button class="btn btn-sm btn-primary" id="btn-viewer-3d" style="flex: 1; font-size: 11px; padding: 8px 0;">
+                <i class="fa-solid fa-cube"></i> 3D (IA)
+              </button>
+              <button class="btn btn-sm btn-outline" id="btn-viewer-360" style="flex: 1; font-size: 11px; padding: 8px 0;">
+                <i class="fa-solid fa-arrows-rotate"></i> 360° (Fotos)
+              </button>
+            </div>
+            <small id="viewer-mode-hint" style="color: var(--text-muted); font-size: 11px; display: block; margin-top: 2px;">
+              <strong style="color: var(--accent-cyan);">3D:</strong> reconstrucción por IA (Meshy/Replicate).
+              <strong style="color: var(--accent-green);">360°:</strong> gira tus fotos reales, sin IA y gratis.
+            </small>
+          </div>
+
           <div class="form-group">
             <label for="vehicle-select">Vehículo a Procesar</label>
             <select id="vehicle-select">
@@ -98,11 +120,11 @@
           </div>
 
           <div class="upload-zone" id="upload-zone">
-            <i class="fa-solid fa-cube upload-icon"></i>
-            <p>Arrastra tu modelo 3D (.glb, .gltf) o video 360° o</p>
+            <i class="fa-solid fa-cloud-arrow-up upload-icon"></i>
+            <p id="upload-text">Arrastra tus fotos (.jpg/.png), un .zip de fotos o un modelo .glb</p>
             <button class="btn btn-secondary" id="btn-browse">Examinar Archivos</button>
-            <input type="file" id="file-input" accept="video/*,.zip,.glb,.gltf" style="display: none;">
-            <span class="file-info" id="file-info">Soporta .glb, .gltf, .mp4, .zip</span>
+            <input type="file" id="file-input" accept="image/*,.zip,.glb,.gltf" style="display: none;">
+            <span class="file-info" id="file-info">3D: 1+ fotos o .glb &nbsp;|&nbsp; 360°: varias fotos o .zip</span>
           </div>
 
           <button class="btn btn-primary btn-block" id="btn-start-process" disabled>
@@ -209,7 +231,8 @@
   </div>
 
   <!-- Scripts del Desarrollador -->
-  <script src="js/ThreeJsVehicleRenderer.js?v=2.0"></script>
-  <script src="js/app.js?v=2.0"></script>
+  <script src="js/ThreeJsVehicleRenderer.js?v=3.0"></script>
+  <script src="js/Spinner360Viewer.js?v=3.0"></script>
+  <script src="js/app.js?v=3.0"></script>
 </body>
 </html>
